@@ -346,11 +346,13 @@ end
 Factory.define :default_settings, :parent => :setting do |s|
 
   # Truncate settings so that we always start with empty table.
-  if ActiveRecord::Base.connection.adapter_name.downcase == "sqlite"
-    ActiveRecord::Base.connection.execute("DELETE FROM settings")
-  else # mysql and postgres
-    ActiveRecord::Base.connection.execute("TRUNCATE settings")
+  ActiveRecord::Migration.create_table :settings, :force => true do |t|
+    t.string   :name, :limit => 32, :null => false, :default => ""
+    t.text     :value
+    t.text     :default_value
+    t.timestamps
   end
+  ActiveRecord::Migration.add_index :settings, :name
 
   settings = YAML.load_file("#{RAILS_ROOT}/config/settings.yml")
   settings.keys.each do |key|

@@ -42,11 +42,14 @@ namespace :crm do
       # Truncate settings table if loading Fat Free CRM settings.
       ActiveRecord::Base.establish_connection(Rails.env)
       unless plugin
-        if ActiveRecord::Base.connection.adapter_name.downcase == "sqlite"
-          ActiveRecord::Base.connection.execute("DELETE FROM settings")
-        else # mysql and postgres
-          ActiveRecord::Base.connection.execute("TRUNCATE settings")
+
+        ActiveRecord::Migration.create_table :settings, :force => true do |t|
+          t.string   :name, :limit => 32, :null => false, :default => ""
+          t.text     :value
+          t.text     :default_value
+          t.timestamps
         end
+        ActiveRecord::Migration.add_index :settings, :name
       end
 
       settings.keys.each do |key|
